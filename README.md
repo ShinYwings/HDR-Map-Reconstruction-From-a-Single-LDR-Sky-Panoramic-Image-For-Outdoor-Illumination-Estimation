@@ -1,6 +1,8 @@
 # HDR-Map-Reconstruction-From-a-Single-LDR-Sky-Panoramic-Image-For-Outdoor-Illumination-Estimation
+사진사진
 a multi-faceted approach to reconstructing HDR maps from a single LDR sky panoramic image that considers the sun and sky regions separately.
 (This paper is under review)
+
 
 # Requirements
 opencv >= 4 (conda install -ㅊ conda-forge opencv)
@@ -11,7 +13,7 @@ tensorflow_adds_on
 ```
 python datasetGenerator.py
 ```
-CAU dataset can be downloaded from here(link).
+The CAU dataset can be downloaded from here(link).
 (Sythetic dataset는 Lalonde의 창작물이므로 제공이 불가하다.)
 
 # Pretraining
@@ -23,7 +25,7 @@ python pretrain_sun.py
 ```
 python train.py
 ```
-Pretrained model can be downloaded from here(link).
+The pre-trained model can be downloaded from here(link).
 
 # Inference
 ```
