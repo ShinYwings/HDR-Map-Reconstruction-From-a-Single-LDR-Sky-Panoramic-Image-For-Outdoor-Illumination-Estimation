@@ -13,7 +13,7 @@ tensorflow_adds_on
 ```
 python datasetGenerator.py
 ```
-The CAU dataset can be downloaded from here([link](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing)).
+The CAU dataset can be downloaded from [here](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing).
 (Sythetic dataset는 Lalonde의 창작물이므로 제공이 불가하다.)
 
 # Pretraining
