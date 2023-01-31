@@ -6,9 +6,9 @@ a multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # Requirements
 
-opencv >= 4 (conda install -ㅊ conda-forge opencv) \\
-tensorflow >= 2.4 \\
-tensorflow_adds_on \\
+opencv >= 4 (conda install -ㅊ conda-forge opencv) \
+tensorflow >= 2.4 \
+tensorflow_adds_on \
 
 # Dataset Generation
 
@@ -16,7 +16,7 @@ tensorflow_adds_on \\
 python datasetGenerator.py
 ```
 
-The CAU dataset can be downloaded from [here](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing). \\
+The CAU dataset can be downloaded from [here](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing). \
 (Sythetic dataset는 Lalonde의 창작물이므로 제공이 불가하다.)
 
 # Pretraining
