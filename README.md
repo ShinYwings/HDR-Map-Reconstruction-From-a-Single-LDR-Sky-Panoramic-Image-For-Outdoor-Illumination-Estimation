@@ -8,7 +8,7 @@ a multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 opencv >= 4 (conda install -ㅊ conda-forge opencv) \
 tensorflow >= 2.4 \
-tensorflow_adds_on \
+tensorflow_adds_on
 
 # Dataset Generation
 
