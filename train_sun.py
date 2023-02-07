@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 import time
 from tqdm import tqdm
+import argparse
 
 import utils
 import tf_utils
@@ -17,6 +18,13 @@ from numpy.random import randint
 from utils import StrEnum
 from enum import auto
 
+
+AUTO = tf.data.AUTOTUNE
+HDR_EXTENSION = "hdr" # Available ext.: exr, hdr
+IMSHAPE = (32,128,3)
+AZIMUTH_gt = IMSHAPE[1]*0.5-1
+SUNPOSE_BIN = tf.convert_to_tensor([tf_utils.sunpose_init(i,IMSHAPE[0],IMSHAPE[1]) for i in range(IMSHAPE[0]*IMSHAPE[1])])
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
@@ -26,33 +34,6 @@ if gpus:
 
 class mod(StrEnum):
     SUN = auto()
-
-# Hyper parameters
-AUTO = tf.data.AUTOTUNE
-
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 32
-
-EPOCHS = 1000
-IMSHAPE = (32,128,3) # TODO 48,192    24, 96   16, 64
-TRAIN_SUN = True
-
-# TODO azimuth angle depends on dataset (fixed)
-AZIMUTH_gt = IMSHAPE[1]*0.5-1
-
-HDR_EXTENSION = "hdr" # Available ext.: exr, hdr
-
-CURRENT_WORKINGDIR = os.getcwd()
-DATASET_DIR = os.path.join(CURRENT_WORKINGDIR, "dataset_{}_{}/tfrecord".format(IMSHAPE[1], IMSHAPE[0]))
-TRAIN_DIR = os.path.join(DATASET_DIR, "train")
-TEST_DIR = os.path.join(DATASET_DIR, "test")
-
-DoRF_PATH = os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt')
-
-# Absolute path
-SUN_PRETRAINED_DIR = os.path.join(CURRENT_WORKINGDIR, "checkpoints/SUN_{}".format(IMSHAPE[1]))
-
-SUNPOSE_BIN = tf.convert_to_tensor([tf_utils.sunpose_init(i,IMSHAPE[0],IMSHAPE[1]) for i in range(IMSHAPE[0]*IMSHAPE[1])])
 
 def vMF(x, y, h, w, kappa=80.0):
     # discrete the sun into (h*w) bins and model the sun probability distirbution. (von Mises-Fisher)
@@ -108,6 +89,7 @@ def _preprocessing(hdr, crf_src, t_src):
     jpeg_img = tf.stack(jpeg_img_list, 0)
     jpeg_img_float = tf.cast(jpeg_img, tf.float32) / 255.0
 
+    ## SingleHDR way
     # loss mask to exclude over-/under-exposed regions
     # gray = tf.image.rgb_to_grayscale(jpeg_img)
     # over_exposed = tf.cast(tf.greater_equal(gray, 249), tf.float32)
@@ -124,7 +106,6 @@ def _preprocessing(hdr, crf_src, t_src):
 def _parse_function(example_proto):
     feature_description = {
         'image': tf.io.FixedLenFeature([], tf.string),
-        # 'render': tf.io.FixedLenFeature([], tf.string),
         'azimuth' : tf.io.FixedLenFeature([], tf.float32),
         'elevation' : tf.io.FixedLenFeature([], tf.float32),
     }
@@ -145,7 +126,7 @@ def _parse_function(example_proto):
 
     return hdr, sun_pose
 
-def configureDataset(dirpath, train= "train"):
+def configureDataset(dirpath, batchsize, train= "train"):
 
     tfrecords_list = list()
     a = tf.data.Dataset.list_files(os.path.join(dirpath, "*.tfrecord"), shuffle=False)
@@ -155,17 +136,44 @@ def configureDataset(dirpath, train= "train"):
     ds = ds.map(_parse_function, num_parallel_calls=AUTO)
 
     if train:
-        ds = ds.shuffle(buffer_size = 5000).batch(batch_size=BATCH_SIZE, drop_remainder=True).prefetch(AUTO)
+        ds = ds.shuffle(buffer_size = 5000).batch(batch_size=batchsize, drop_remainder=True).prefetch(AUTO)
     else:
-        ds = ds.batch(batch_size=BATCH_SIZE, drop_remainder=True).prefetch(AUTO)
+        ds = ds.batch(batch_size=batchsize, drop_remainder=True).prefetch(AUTO)
         
     return ds
 
-if __name__=="__main__":
+def run(args):
+    
+    global IMSHAPE, AZIMUTH_gt, SUNPOSE_BIN
+    
+    # Hyper parameters
+    LEARNING_RATE = args.lr
+    BATCH_SIZE = args.batchsize
+
+    EPOCHS = args.epochs
+    IMSHAPE = (args.imheight,args.imwidth,3)
+    TRAIN_SUN = args.train
+
+    # Azimuth angle depends on dataset (fixed)
+    AZIMUTH_gt = IMSHAPE[1]*0.5-1
+    
+    if args.dir == "None":
+        DATASET_DIR = os.path.join(CURRENT_WORKINGDIR, "dataset_{}_{}/tfrecord".format(IMSHAPE[1], IMSHAPE[0]))
+    else:
+        DATASET_DIR = args.dir
+    TRAIN_DIR = os.path.join(DATASET_DIR, "train")
+    TEST_DIR = os.path.join(DATASET_DIR, "test")
+
+    DoRF_PATH = args.dorfpath
+
+    # Absolute path
+    SUN_PRETRAINED_DIR = os.path.join(CURRENT_WORKINGDIR, "checkpoints/SUN")
+
+    SUNPOSE_BIN = tf.convert_to_tensor([tf_utils.sunpose_init(i,IMSHAPE[0],IMSHAPE[1]) for i in range(IMSHAPE[0]*IMSHAPE[1])])
     
     """Init Dataset"""
-    train_ds = configureDataset(TRAIN_DIR, train=True)
-    test_ds  = configureDataset(TEST_DIR, train=False)
+    train_ds = configureDataset(TRAIN_DIR, BATCH_SIZE, train=True)
+    test_ds  = configureDataset(TEST_DIR, BATCH_SIZE, train=False)
 
     train_crf, test_crf = utils.getDoRF(DoRF_PATH)
     train_t  , test_t   = utils.get_T()
@@ -371,7 +379,7 @@ if __name__=="__main__":
 
             print(f'[{module}] Epoch: {int(ckpt.epoch)}, Train Loss: {train_loss.result()}, Test Loss: {test_loss.result()}, Elapsed time : {time.perf_counter() - start} seconds')
     
-    print("시작")
+    print("Trian start")
     if TRAIN_SUN:
         train(module=mod.SUN,
                 train_step=sun_train_step, test_step=sun_test_step,  
@@ -387,12 +395,12 @@ if __name__=="__main__":
         import cv2
         import matplotlib.pyplot as plt
 
-        inference_img_dir = f"/home/shin/shinywings/research/challengingImages/{IMSHAPE[0]}_{IMSHAPE[1]}"
+        # TODO dir
+        inference_img_dir = args.inference_img_dir
         hdr_imgs = [glob(os.path.join(inference_img_dir, '*.hdr'))]
         hdr_imgs = sorted(hdr_imgs)
-        b = len(hdr_imgs)
-
-        for idx , hdr_img_path in enumerate(hdr_imgs[0]):
+        
+        for _ , hdr_img_path in enumerate(hdr_imgs[0]):
             
             print(hdr_img_path)
 
@@ -434,15 +442,9 @@ if __name__=="__main__":
             pred, sun_cam = inference(jpeg_img_float)
 
             sun_cam2 = tf.image.resize(sun_cam[1], (IMSHAPE[0],IMSHAPE[1]))
-            sun_cam3 = tf.image.resize(sun_cam[2], (IMSHAPE[0],IMSHAPE[1]))
-
+            
             sum_pred = sun_cam[0] * sun_cam2 * pred
             sum_pred = sum_pred / (tf.reduce_max(sum_pred) + 1e-5)
-
-            sun_cam1_dir = utils.createNewDir(inference_img_dir, "sun_cam1")
-            sun_cam2_dir = utils.createNewDir(inference_img_dir, "sun_cam2")
-            sun_cam3_dir = utils.createNewDir(inference_img_dir, "sun_cam3")
-            outimg_epoch_dir = utils.createNewDir(inference_img_dir, "outImg")
 
             fig = plt.figure()
 
@@ -467,5 +469,23 @@ if __name__=="__main__":
             ax.set_title(hdr_img_path, fontsize=5)
 
             plt.show()
-            
-    print("끝")
+
+    print("trian end")
+if __name__=="__main__":
+
+    CURRENT_WORKINGDIR = os.getcwd()
+    
+    parser = argparse.ArgumentParser(description="pretraining sun luminance estimator")
+    parser.add_argument('--dir', type=str, default="/media/shin/2nd_m.2/LavalSkyDB")
+    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--inference_img_dir', type=str, default=f"/home/shin/shinywings/research/challengingImages/{IMSHAPE[0]}_{IMSHAPE[1]}")
+    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--batchsize', type=int, default=32)
+    parser.add_argument('--epochs', type=int, default=1000)
+    parser.add_argument('--imheight', type=int, default=32)
+    parser.add_argument('--imwidth', type=int, default=128)
+    parser.add_argument('--dorfpath', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
+    
+    args = parser.parse_args()
+
+    run(args)

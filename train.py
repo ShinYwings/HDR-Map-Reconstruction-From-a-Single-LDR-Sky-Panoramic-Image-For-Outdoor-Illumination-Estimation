@@ -142,8 +142,7 @@ def configureDataset(dirpath, train= "train"):
         
     return ds
         
-if __name__=="__main__":
-
+def run():
     """Init Dataset"""
     train_ds = configureDataset(TRAIN_DIR, train=True)
     test_ds  = configureDataset(TEST_DIR, train=False)
@@ -616,3 +615,22 @@ if __name__=="__main__":
 
         print(f'Epoch: {int(ckpt.epoch)}, Train Gen Loss: {train_total_loss_gen.result()}, Train Disc Loss: {train_total_loss_disc.result()}, \
                 Test Gen Loss: {test_total_loss_gen.result()}, Test Disc Loss: {test_total_loss_disc.result()}, Elapsed time : {time.perf_counter() - start} seconds')
+        
+if __name__=="__main__":
+    
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="pretraining sun luminance estimator")
+    parser.add_argument('--dir', type=str, default="/media/shin/2nd_m.2/LavalSkyDB")
+    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--inference_img_dir', type=str, default=f"/home/shin/shinywings/research/challengingImages/{IMSHAPE[0]}_{IMSHAPE[1]}")
+    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--batchsize', type=int, default=32)
+    parser.add_argument('--epochs', type=int, default=1000)
+    parser.add_argument('--imheight', type=int, default=32)
+    parser.add_argument('--imwidth', type=int, default=128)
+    parser.add_argument('--dorfpath', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
+    
+    args = parser.parse_args()
+
+    run(args)

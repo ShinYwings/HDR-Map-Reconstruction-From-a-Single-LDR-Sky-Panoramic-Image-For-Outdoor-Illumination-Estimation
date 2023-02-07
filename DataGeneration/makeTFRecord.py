@@ -45,7 +45,7 @@ def convert_image_to_bytes(image="image"):
     
     return img_raw
 
-def parse_to_tfrecord(df = "df", envmap_dirname = "envmap_dirname", render_dirname= "render_dirname", tfrecord_dir= "tfrecord_dir"):
+def parse_to_tfrecord(df = "df", envmap_dirname = "envmap_dirname", tfrecord_dir= "tfrecord_dir"):
 
     for idx, row in df.iterrows():
             
@@ -73,10 +73,10 @@ def makeTFRecord(reshaped_size):
 
     TRAINDIR = os.path.join(DS, "train")
     TRAINHDRDIR = os.path.join(TRAINDIR, "hdr")
-    TRAINRENDERDIR = os.path.join(TRAINDIR, "render")
+    # TRAINRENDERDIR = os.path.join(TRAINDIR, "render")
     TESTDIR = os.path.join(DS, "test")
     TESTHDRDIR = os.path.join(TESTDIR, "hdr")
-    TESTRENDERDIR = os.path.join(TESTDIR, "render")
+    # TESTRENDERDIR = os.path.join(TESTDIR, "render")
     NEWDIR = os.path.join(DS,"tfrecord")
 
     TRAIN_TFREC_DIR = os.path.join(NEWDIR,"train")
@@ -93,15 +93,15 @@ def makeTFRecord(reshaped_size):
         if "train" == proc:
             dirname = TRAINDIR
             envmap_dirname = TRAINHDRDIR
-            render_dirname = TRAINRENDERDIR
+            # render_dirname = TRAINRENDERDIR
             tfrecord_dir = TRAIN_TFREC_DIR
         else:
             dirname = TESTDIR
             envmap_dirname = TESTHDRDIR
-            render_dirname = TESTRENDERDIR
+            # render_dirname = TESTRENDERDIR
             tfrecord_dir = TEST_TFREC_DIR
 
         csv_path = os.path.join(dirname, proc + "_refine.csv")
         df = pd.read_csv(csv_path)
 
-        parse_to_tfrecord(df = df, envmap_dirname = envmap_dirname, render_dirname= render_dirname, tfrecord_dir= tfrecord_dir)
+        parse_to_tfrecord(df = df, envmap_dirname = envmap_dirname, tfrecord_dir= tfrecord_dir)
