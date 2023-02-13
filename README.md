@@ -17,7 +17,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # DataGeneration
 
-- Use only sky dome panoramic image based on fisheye lens image (elevation 0~90, azimuth 0~360)
+- Use only sky dome panoramic image based on fisheye lens image (elevation 0\~90, azimuth 0\~360)
 - Generate input traing & test data from the Laval HDR dataset. \
 (Redistribution of the Laval-HDR-dataset is not permitted. Please contact Jean-Francois Lalonde at jflalonde at gel dot ulaval dot ca to obtain the dataset.)
 
