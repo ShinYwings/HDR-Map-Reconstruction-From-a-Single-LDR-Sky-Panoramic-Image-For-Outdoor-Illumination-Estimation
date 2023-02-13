@@ -2,6 +2,7 @@ from DataGeneration import loadLavalSkyDB as a
 from DataGeneration import makeTFRecord as b
 import argparse
 import time
+import os
 
 # DATASET_DIR = 
 
@@ -25,9 +26,12 @@ def make_dataset(reshape_size, dataset_dir):
     print("elapsed Time of dataset generation: {} secs".format(time.perf_counter() - start))
 
 if __name__=="__main__":
+    CURRENT_WORKINGDIR = os.getcwd()
     
     parser = argparse.ArgumentParser(description="dataset generation")
-    parser.add_argument('--dir', type=str, default="/media/shin/2nd_m.2/LavalSkyDB")
+    parser.add_argument('--dir', type=str, default=os.path.join(CURRENT_WORKINGDIR))
+    parser.add_argument('--imheight', type=int, default=32)
+    parser.add_argument('--imwidth', type=int, default=128)
     
     args = parser.parse_args()
-    make_dataset([128, 32], args.dir)
+    make_dataset([args.imwidth, args.imheight], args.dir)

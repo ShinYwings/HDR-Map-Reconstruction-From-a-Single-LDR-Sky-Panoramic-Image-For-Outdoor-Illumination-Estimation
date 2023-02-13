@@ -36,16 +36,6 @@ HDR_EXTENSION = "hdr" # Available ext.: exr, hdr
 LEARNING_RATE = 1e-4
 
 CURRENT_WORKINGDIR = os.getcwd()
-DATASET_DIR = os.path.join(CURRENT_WORKINGDIR, "dataset_{}_{}/tfrecord".format(IMSHAPE[1], IMSHAPE[0])) 
-TRAIN_DIR = os.path.join(DATASET_DIR, "train")
-TEST_DIR = os.path.join(DATASET_DIR, "test")
-
-DoRF_PATH = os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt')
-
-# Absolute path
-# TODO pretrained_dir
-PRETRAINED_DIR = None
-SUN_PRETRAINED_DIR = os.path.join(CURRENT_WORKINGDIR, f"checkpoints/SUN")
 
 SUNPOSE_BIN = tf.convert_to_tensor([tf_utils.sunpose_init(i,IMSHAPE[0],IMSHAPE[1]) for i in range(IMSHAPE[0]*IMSHAPE[1])])
 
@@ -142,12 +132,35 @@ def configureDataset(dirpath, train= "train"):
         
     return ds
         
-def run():
+def run(args):
+    global BATCH_SIZE, EPOCHS, IMSHAPE, AZIMUTH_gt, LEARNING_RATE, DATASET_DIR, SUNPOSE_BIN
+    
+    IMSHAPE = (args.imheight, args.imwidth, 3)
+    AZIMUTH_gt = IMSHAPE[1]*0.5-1
+    
+    # Optimizer Option
+    LEARNING_RATE = args.lr
+    BATCH_SIZE = args.batchsize
+    EPOCHS = args.epochs
+    CURRENT_WORKINGDIR = os.getcwd()
+    
+    if(IMSHAPE[0] != 32):
+        DATASET_DIR = os.path.join(CURRENT_WORKINGDIR, "dataset_{}_{}/tfrecord".format(IMSHAPE[1], IMSHAPE[0]))
+    else:
+        DATASET_DIR = args.dir
+    TRAIN_DIR = os.path.join(DATASET_DIR, "train")
+    TEST_DIR = os.path.join(DATASET_DIR, "test")
+
+    PRETRAINED_DIR = args.sky
+    SUN_PRETRAINED_DIR = args.sun
+
+    SUNPOSE_BIN = tf.convert_to_tensor([tf_utils.sunpose_init(i,IMSHAPE[0],IMSHAPE[1]) for i in range(IMSHAPE[0]*IMSHAPE[1])])
+
     """Init Dataset"""
     train_ds = configureDataset(TRAIN_DIR, train=True)
     test_ds  = configureDataset(TEST_DIR, train=False)
 
-    train_crf, test_crf = utils.getDoRF(DoRF_PATH)
+    train_crf, test_crf = utils.getDoRF(args.dorf)
     train_t  , test_t   = utils.get_T()
 
     """CheckPoint Create"""
@@ -156,14 +169,11 @@ def run():
     _gen = g.model(batch_size=BATCH_SIZE, im_height=IMSHAPE[0], im_width=IMSHAPE[1], da_kernel_size=3, dilation_rate=1)
     _sun = sun.model(im_height=IMSHAPE[0], im_width=IMSHAPE[1], da_kernel_size=3, dilation_rate=1)
     _dis = d.model(im_height=IMSHAPE[0], im_width=IMSHAPE[1], da_kernel_size=3, dilation_rate=1)
-    # _ref = ref.model()
-    vgg = Vgg16('vgg16.npy')
-    vgg2 = Vgg16('vgg16.npy')
+    vgg = Vgg16(args.vgg)
+    vgg2 = Vgg16(args.vgg)
     
     """"Create Output Image Directory"""
-    # TODO loss comparison
     train_summary_writer, test_summary_writer, logdir = tf_utils.createDirectories(CURRENT_WORKINGDIR, name="SKY", dir="tensorboard")
-    train_outImgDir, test_outImgDir = tf_utils.createDirectories(CURRENT_WORKINGDIR, name="SKY", dir="outputImg")
     print(f'tensorboard --logdir={logdir}')
     
     """Model initialization"""
@@ -188,7 +198,6 @@ def run():
     test_generated_loss = tf.keras.metrics.Mean(name= 'test_metric_generated_loss', dtype=tf.float32)
     test_real_loss = tf.keras.metrics.Mean(name= 'test_metric_real_loss', dtype=tf.float32)
 
-    # Adam vs RMSprop :  RMSprop win FOR LSGAN
     optimizer_gen  = tf.keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
     optimizer_disc = tf.keras.optimizers.RMSprop(learning_rate=LEARNING_RATE)
 
@@ -221,31 +230,12 @@ def run():
                                         optimizer=optimizer_sun)
     
     kl_Divergence = tf.keras.losses.KLDivergence()
-
-    # from_logits = True : sigmoid included on tf.keras.layers.BinaryCrossentropy
-    # bin_crossentropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-    
-    # GAN loss
-    # gen_loss = lambda disc_generated_output : bin_crossentropy(tf.ones_like(disc_generated_output), disc_generated_output)
-    # real_loss = lambda disc_real_output : bin_crossentropy(tf.ones_like(disc_real_output), disc_real_output)
-    # generated_loss = lambda disc_generated_output : bin_crossentropy(tf.zeros_like(disc_generated_output), disc_generated_output)
-    
+  
     # LSGAN
     gen_loss = lambda disc_generated_output : tf.reduce_mean(tf.square(disc_generated_output - 1.))
     real_loss = lambda disc_real_output : tf.reduce_mean(tf.square(disc_real_output - 1.))
     generated_loss = lambda disc_generated_output : tf.reduce_mean(tf.square(disc_generated_output - 0.))
     
-    """
-    Check out the dataset that properly work
-    """
-    # import matplotlib.pyplot as plt
-    # plt.figure(figsize=(20,20))
-    # for i, (image, means) in enumerate(train_ds.take(25)):
-    #     ax = plt.subplot(5,5,i+1)
-    #     plt.imshow(image[i])
-    #     plt.axis('off')
-    # plt.show()
-
     @tf.function
     def generator_in_step(args, training="training"):
         if training:
@@ -375,9 +365,6 @@ def run():
         _generated_loss = generated_loss(disc_generated_output)
         
         """Total loss"""
-        # BCE
-        # total_disc_loss = tf.reduce_mean(_generated_loss + _real_loss)
-
         # LSGAN
         total_disc_loss = tf.reduce_mean((_generated_loss + _real_loss)*0.5)
         
@@ -454,8 +441,6 @@ def run():
 
         return [y_final_lin, sky_pred_lin, sun_pred_lin, alpha_c3, sunpose_pred, sun_cam1, sun_cam2, sun_cam3, sun_rad_lin, g_out, b_out]
 
-    isFirst = True
-
     for epoch in range(1, EPOCHS+1):
 
         start = time.perf_counter()
@@ -490,31 +475,6 @@ def run():
             preprocessed_dataset = tf.py_function(_preprocessing, [hdr, train_crf, train_t], [tf.float32, tf.float32]) 
             pred = train_step(preprocessed_dataset, sunpose_gt)
         
-        sun_cam1_dir = utils.createNewDir(train_outImgDir, "sun_cam1")
-        sun_cam2_dir = utils.createNewDir(train_outImgDir, "sun_cam2")
-        sun_cam3_dir = utils.createNewDir(train_outImgDir, "sun_cam3")
-        sky_pred_dir = utils.createNewDir(train_outImgDir, "sky_pred")
-        sun_pred_dir = utils.createNewDir(train_outImgDir, "sun_pred")
-        sun_rad_dir = utils.createNewDir(train_outImgDir, "sun_rad")
-        sunpose_pred_dir = utils.createNewDir(train_outImgDir, "sunpose_pred")
-        grad_cam.show(pred[5], sun_cam1_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[6], sun_cam2_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[7], sun_cam3_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[1], sky_pred_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[2], sun_pred_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[8], sun_rad_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[4], sunpose_pred_dir, int(ckpt.epoch), show=False, save=True)
-        
-        outRad = pred[8]
-        outsunpose = tf.tile(pred[4], [1,1,1,3])
-        _epoch_dir = utils.createNewDir(train_outImgDir, f"{int(ckpt.epoch)}Epoch")
-        outRad_epoch_dir = utils.createNewDir(_epoch_dir, "outRad")
-        outSunpose_epoch_dir = utils.createNewDir(_epoch_dir, "outSunpose")
-        for i in range(outRad.get_shape()[0]):
-            # rgb2bgr
-            utils.writeHDR(outRad[i,:,:,::-1].numpy(), "{}/{}.{}".format(outRad_epoch_dir,i,HDR_EXTENSION), outRad.get_shape()[1:3])
-            utils.writeHDR(outsunpose[i,:,:,::-1].numpy(), "{}/{}.{}".format(outSunpose_epoch_dir,i,HDR_EXTENSION), outRad.get_shape()[1:3])
-            
         with train_summary_writer.as_default():
             
             tf.summary.scalar('gen_total_loss', train_total_loss_gen.result(), step=epoch)
@@ -527,18 +487,6 @@ def run():
             tf.summary.scalar('disc_total_loss', train_total_loss_disc.result(), step=epoch)
             tf.summary.scalar('disc_generated_loss', train_generated_loss.result(), step=epoch)
             tf.summary.scalar('disc_real_loss', train_real_loss.result(), step=epoch)
-            
-            _hdr_t        = preprocessed_dataset[0]
-            jpeg_img_float = preprocessed_dataset[1]
-            tf.summary.scalar('g_out', pred[9], step=epoch)
-            tf.summary.scalar('b_out', pred[10], step=epoch)
-            tf.summary.image('hdr_t', _hdr_t, step=epoch)
-            tf.summary.image('y_final', pred[0], step=epoch)
-            tf.summary.image('jpeg_img_float', jpeg_img_float, step=epoch)
-            tf.summary.image('alpha', pred[3], step=epoch)
-            tf.summary.image('sky_pred', pred[1], step=epoch)
-            tf.summary.image('sun_pred', pred[2], step=epoch)
-            tf.summary.image('sun_rad', pred[8], step=epoch)
 
         for (hdr, sunpose_gt) in tqdm(test_ds):
             preprocessed_dataset = tf.py_function(_preprocessing, [hdr, test_crf, test_t], [tf.float32, tf.float32])
@@ -557,14 +505,6 @@ def run():
             tf.summary.scalar('disc_generated_loss', test_generated_loss.result(), step=epoch)
             tf.summary.scalar('disc_real_loss', test_real_loss.result(), step=epoch)
             
-        if isFirst:
-            isFirst = False
-            groundtruth_dir = utils.createNewDir(test_outImgDir, "groundTruth")
-            if not os.listdir(groundtruth_dir):
-                for i in range(hdr.get_shape()[0]):
-                    # rgb2bgr
-                    utils.writeHDR(hdr[i,:,:,::-1].numpy(), "{}/{}_gt.{}".format(groundtruth_dir,i,HDR_EXTENSION), hdr.get_shape()[1:3])
-
         ckpt.epoch.assign_add(1)
 
         if SUN_PRETRAINED_DIR is not None:
@@ -572,40 +512,8 @@ def run():
 
         tf.summary.scalar('g_out', pred[9], step=epoch)
         tf.summary.scalar('b_out', pred[10], step=epoch)
-        
-        sun_cam1_dir = utils.createNewDir(test_outImgDir, "sun_cam1")
-        sun_cam2_dir = utils.createNewDir(test_outImgDir, "sun_cam2")
-        sun_cam3_dir = utils.createNewDir(test_outImgDir, "sun_cam3")
-        sun_pred_dir = utils.createNewDir(test_outImgDir, "sun_pred")
-        sky_pred_dir = utils.createNewDir(test_outImgDir, "sky_pred")
-        sun_rad_dir = utils.createNewDir(test_outImgDir, "sun_rad")
-        sunpose_pred_dir = utils.createNewDir(test_outImgDir, "sunpose_pred")
-        
-        grad_cam.show(pred[5], sun_cam1_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[6], sun_cam2_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[7], sun_cam3_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[2], sun_pred_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[1], sky_pred_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[4], sunpose_pred_dir, int(ckpt.epoch), show=False, save=True)
-        grad_cam.show(pred[8], sun_rad_dir, int(ckpt.epoch), show=False, save=True)
-
-        outRad = pred[8]
-        outsunpose = tf.tile(pred[4], [1,1,1,3])
-        _epoch_dir = utils.createNewDir(test_outImgDir, f"{int(ckpt.epoch)}Epoch")
-        outRad_epoch_dir = utils.createNewDir(_epoch_dir, "outRad")
-        outSunpose_epoch_dir = utils.createNewDir(_epoch_dir, "outSunpose")
-        for i in range(outRad.get_shape()[0]):
-            # rgb2bgr
-            utils.writeHDR(outRad[i,:,:,::-1].numpy(), "{}/{}.{}".format(outRad_epoch_dir,i,HDR_EXTENSION), outRad.get_shape()[1:3])
-            utils.writeHDR(outsunpose[i,:,:,::-1].numpy(), "{}/{}.{}".format(outSunpose_epoch_dir,i,HDR_EXTENSION), outRad.get_shape()[1:3])
-            
-        if int(ckpt.epoch) % 10 == 0:
-            outImg = pred[0]
-            for i in range(outImg.get_shape()[0]):
-                outimg_epoch_dir = utils.createNewDir(test_outImgDir, f"{int(ckpt.epoch)}Epoch_outImg")
-                # rgb2bgr
-                utils.writeHDR(outImg[i,:,:,::-1].numpy(), "{}/{}.{}".format(outimg_epoch_dir,i,HDR_EXTENSION), outImg.get_shape()[1:3])
-            
+    
+        if int(ckpt.epoch) % 10 == 0:            
             if SUN_PRETRAINED_DIR is not None:
                 sapa = ckpt_manager_sun.save()
                 print(f"Saved sun checkpoint for step {int(ckpt_sun.epoch)}: {sapa}")
@@ -620,16 +528,17 @@ if __name__=="__main__":
     
     import argparse
     
-    parser = argparse.ArgumentParser(description="pretraining sun luminance estimator")
-    parser.add_argument('--dir', type=str, default="/media/shin/2nd_m.2/LavalSkyDB")
-    parser.add_argument('--train', type=bool, default=True)
-    parser.add_argument('--inference_img_dir', type=str, default=f"/home/shin/shinywings/research/challengingImages/{IMSHAPE[0]}_{IMSHAPE[1]}")
+    parser = argparse.ArgumentParser(description="train a model")
+    parser.add_argument('--dir', type=str, default=os.path.join(CURRENT_WORKINGDIR, "dataset_{}_{}/tfrecord".format(IMSHAPE[1], IMSHAPE[0])))
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--batchsize', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--imheight', type=int, default=32)
     parser.add_argument('--imwidth', type=int, default=128)
-    parser.add_argument('--dorfpath', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
+    parser.add_argument('--sky', type=str, default=os.path.join(CURRENT_WORKINGDIR, "checkpoints/SKY"))
+    parser.add_argument('--sun', type=str, default=os.path.join(CURRENT_WORKINGDIR, "checkpoints/SUN"))
+    parser.add_argument('--dorf', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
+    parser.add_argument('--vgg', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'vgg16.npy'))
     
     args = parser.parse_args()
 

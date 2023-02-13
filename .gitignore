@@ -153,3 +153,10 @@ dataset/
 vgg16.npy
 inference_imgs/
 tf_records/
+
+# Print results of each layer for analysing the model
+train_analysis.py
+inference_analysis.py
+
+# fine tuning 시도는 했지만 더 나쁜 결과를 보임.
+finetune_CAU_dataset.py

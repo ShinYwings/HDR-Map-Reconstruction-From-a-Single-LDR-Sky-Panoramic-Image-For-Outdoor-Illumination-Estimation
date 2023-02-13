@@ -484,7 +484,7 @@ if __name__=="__main__":
     parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--imheight', type=int, default=32)
     parser.add_argument('--imwidth', type=int, default=128)
-    parser.add_argument('--dorfpath', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
+    parser.add_argument('--dorf', type=str, default=os.path.join(CURRENT_WORKINGDIR, 'dorfCurves.txt'))
     
     args = parser.parse_args()
 
