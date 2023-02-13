@@ -1,7 +1,7 @@
 # HDR Map Reconstruction From a Single LDR Sky Panoramic Image For Outdoor Illumination Estimation
 
 ![result1](figure/rendered.png)
-A multi-faceted approach to reconstructing HDR maps from a single LDR sky panoramic image that considers the sun and sky regions separately and accounts for various weather conditions.렌더링한다... 뭐에 사용된다.... 목적 분명하게 말하기, skydome 이미지 사용등
+A multi-faceted approach to reconstructing HDR maps from a single LDR sky panoramic image that considers the sun and sky regions separately and accounts for various weather conditions.
 (This paper is under review)
 </br></br>
 
@@ -17,7 +17,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # DataGeneration
 
-- fisheye lens 기반 영상의 sky dome image를 input으로 사용 (elevation 0~90, azimuth 0~360)
+- Use only sky dome panoramic image based on fisheye lens image (elevation 0~90, azimuth 0~360)
 - Generate input traing & test data from the Laval HDR dataset. \
 (Redistribution of the Laval-HDR-dataset is not permitted. Please contact Jean-Francois Lalonde at jflalonde at gel dot ulaval dot ca to obtain the dataset.)
 
@@ -135,22 +135,22 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 We have evaluated our model using two dataset (Laval-dataset, CAU dataset) respectively.
 
 ```
-python inference.py --indir="abs/path/" --outdir="name"
+python inference.py --indir="abs/path" --outdir="name"
 
-    --indir :
-        Absolute path of your dataset directory to inference.
+--indir :
+    Absolute path of your dataset directory to inference.
 
-    --outdir :
-        Specifies the directory name of the output inference image.
+--outdir :
+    Specifies the directory name of the output inference image.
 
-    (Optional)
-        --sky :
-            Absolute path of your sky luminance estimator weights file that you pretrained.
-            (default : os.path.join(CURRENT_WORKINGDIR, "checkpoints/SKY")))
+(Optional)
+    --sky :
+        Absolute path of your sky luminance estimator weights file that you pretrained.
+        (default : os.path.join(CURRENT_WORKINGDIR, "checkpoints/SKY")))
 
-        --sun :
-            Absolute path of your sun luminance estimator weights file that you pretrained.
-            (default : os.path.join(CURRENT_WORKINGDIR, "checkpoints/SKY")))
+    --sun :
+        Absolute path of your sun luminance estimator weights file that you pretrained.
+        (default : os.path.join(CURRENT_WORKINGDIR, "checkpoints/SKY")))
 ```
 
 The CAU dataset can be downloaded from [here](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing).
