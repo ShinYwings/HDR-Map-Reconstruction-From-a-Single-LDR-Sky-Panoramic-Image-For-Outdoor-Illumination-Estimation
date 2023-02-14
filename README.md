@@ -17,7 +17,6 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # DataGeneration
 
-- Use only sky dome panoramic image based on fisheye lens image (elevation 0\~90, azimuth 0\~360)
 - Generate input traing & test data from the Laval HDR dataset. \
 (Redistribution of the Laval-HDR-dataset is not permitted. Please contact Jean-Francois Lalonde at jflalonde at gel dot ulaval dot ca to obtain the dataset.)
 
@@ -35,17 +34,20 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
         Horizontal size of the output panoramic image (default : 128)
     ```
 
-- The input data is encoded as TFRecord to improve training latency due to loading overhead.
+- To use your own input data,
+    1. Make sure your input images conform to the sky-dome image format.  
+        > Only sky-dome images converted from fisheye-lens images are available as input images.
+(The sky-dome image is a panoramic image that captures the sky of $0\degree$-$90\degree$ for elevation and $0\degree$-$360\degree$ for azimuth.)
+    2. Your dataset must conform to the TFRecord format described below.
+        > The input data is encoded as TFRecord to improve training latency due to loading overhead.
 
-- To use your own input data, your dataset must conform to the TFRecord format described below.
-
-    ```
-    feature_description = {
-        'image': _bytes_feature(image),
-        'azimuth': _float_feature(azimuth),
-        'elevation': _float_feature(elevation),
-    }
-    ```
+        ```
+        feature_description = {
+            'image': _bytes_feature(image),
+            'azimuth': _float_feature(azimuth),
+            'elevation': _float_feature(elevation),
+        }
+        ```
 
 # Train
 
@@ -87,13 +89,13 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
             Horizontal size of the input panoramic image (default : 128)
     ```
 
-    If the previous step (DataGeneration) is skipped, your dataset must conform to our TFRecord format \
-    (See item 3 in DataGenration).
+    > Please make sure your dataset conform to our input format \
+    (See item 2 in DataGenration).
 
 3. Train a main model
 
     ```
-    python train.py --dir="your/dir/path" --sky="sky/preweight/path" --sun="sun/preweight/path" --dorf="/txt/path" --vgg="/npy/path"
+    python train.py --dir="/your/dir/path" --sky="/sky/preweight/path" --sun="sun/preweight/path" --dorf="/txt/path" --vgg="/npy/path"
 
         --dir :
             Absolute path of your dataset directory to train.
