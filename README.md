@@ -2,7 +2,7 @@
 
 ![result1](figure/rendered.png)
 A multi-faceted approach to reconstructing HDR maps from a single LDR sky panoramic image that considers the sun and sky regions separately and accounts for various weather conditions.
-(This paper is under review)
+(This paper has been published on IEEE Access)
 </br></br>
 
 # Requirements
@@ -37,7 +37,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 - To use your own input data,
     1. Make sure your input images conform to the sky-dome image format.  
         > Only sky-dome images converted from fisheye-lens images are available as input images.
-(The sky-dome image is a panoramic image that captures the sky of $0\degree$-$90\degree$ for elevation and $0\degree$-$360\degree$ for azimuth.)
+(The sky-dome image is a panoramic image that captures the sky of $0\degree$ - $90\degree$ for elevation and $0\degree$ - $360\degree$ for azimuth.)
     2. Your dataset must conform to the TFRecord format described below.
         > The input data is encoded as TFRecord to improve training latency due to loading overhead.
 
