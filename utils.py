@@ -4,7 +4,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 # import OpenEXR
 # import Imath
-# import cv2
+import cv2
 from enum import Enum
 import matplotlib.pyplot as plt
 import argparse
@@ -58,9 +58,9 @@ def createTrainValidationDirpath(root_dir, createDir = False):
 
     return train_dir, val_dir
 
-# def writeHDR(arr, outfilename, imgshape):
+def writeHDR(arr, outfilename, imgshape):
 
-#     ext_name = outfilename.split(".")[1]
+    ext_name = outfilename.split(".")[1]
 #     if ext_name == "exr":
 #         '''Align_ratio (From HDRUNET)''' 
 #         # align_ratio = (2 ** 16 - 1) / arr.max()
@@ -80,8 +80,8 @@ def createTrainValidationDirpath(root_dir, createDir = False):
 #         out.writePixels({'R': R, 'G': G, 'B': B})
 #         out.close()
 
-#     if ext_name == "hdr":
-#         cv2.imwrite(outfilename, arr.copy())
+    if ext_name == "hdr":
+        cv2.imwrite(outfilename, arr.copy())
 
 def get_T():
     get_t_list = lambda n: 2 ** np.linspace(-3, 3, n, dtype='float32')
