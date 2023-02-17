@@ -49,7 +49,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
         }
         ```
 
-# Train
+# Training
 
 1. Download the pre-trained weights of [vgg16](https://github.com/alex04072000/SingleHDR/tree/master/training_code#:~:text=trained%20weights%20of-,vgg16,-and%20vgg16_places365_weights).
     (This is a property of [SingleHDR](https://github.com/alex04072000/SingleHDR/tree/master/training_code))
