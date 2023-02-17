@@ -2,11 +2,12 @@ import os
 from datetime import datetime as dt
 import numpy as np
 from scipy.interpolate import interp1d
-import OpenEXR
-import Imath
-import cv2
+# import OpenEXR
+# import Imath
+# import cv2
 from enum import Enum
 import matplotlib.pyplot as plt
+import argparse
 
 CURR_PATH_PREFIX = os.getcwd()
 
@@ -57,30 +58,30 @@ def createTrainValidationDirpath(root_dir, createDir = False):
 
     return train_dir, val_dir
 
-def writeHDR(arr, outfilename, imgshape):
+# def writeHDR(arr, outfilename, imgshape):
 
-    ext_name = outfilename.split(".")[1]
-    if ext_name == "exr":
-        '''Align_ratio (From HDRUNET)''' 
-        # align_ratio = (2 ** 16 - 1) / arr.max()
-        # arr = np.round(arr * align_ratio).astype(np.uint16)
+#     ext_name = outfilename.split(".")[1]
+#     if ext_name == "exr":
+#         '''Align_ratio (From HDRUNET)''' 
+#         # align_ratio = (2 ** 16 - 1) / arr.max()
+#         # arr = np.round(arr * align_ratio).astype(np.uint16)
         
-        '''write HDR image using OpenEXR'''
-        # Convert to strings
-        R, G, B = [x.astype('float16').tostring() for x in [arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]]]
+#         '''write HDR image using OpenEXR'''
+#         # Convert to strings
+#         R, G, B = [x.astype('float16').tostring() for x in [arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]]]
 
-        im_height, im_width = imgshape
+#         im_height, im_width = imgshape
 
-        HEADER = OpenEXR.Header(im_width, im_height)
-        half_chan = Imath.Channel(Imath.PixelType(Imath.PixelType.HALF))
-        HEADER['channels'] = dict([(c, half_chan) for c in "RGB"])
+#         HEADER = OpenEXR.Header(im_width, im_height)
+#         half_chan = Imath.Channel(Imath.PixelType(Imath.PixelType.HALF))
+#         HEADER['channels'] = dict([(c, half_chan) for c in "RGB"])
 
-        out = OpenEXR.OutputFile(outfilename, HEADER)
-        out.writePixels({'R': R, 'G': G, 'B': B})
-        out.close()
+#         out = OpenEXR.OutputFile(outfilename, HEADER)
+#         out.writePixels({'R': R, 'G': G, 'B': B})
+#         out.close()
 
-    if ext_name == "hdr":
-        cv2.imwrite(outfilename, arr.copy())
+#     if ext_name == "hdr":
+#         cv2.imwrite(outfilename, arr.copy())
 
 def get_T():
     get_t_list = lambda n: 2 ** np.linspace(-3, 3, n, dtype='float32')
@@ -129,3 +130,13 @@ def filter_show(filters, nx=8, margin=3, scale=10):
         ax = fig.add_subplot(ny, nx, i+1, xticks=[], yticks=[])
         ax.imshow(filters[i, 0], interpolation='nearest')
     plt.show()
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')

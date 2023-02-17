@@ -152,8 +152,8 @@ def run(args):
 
     EPOCHS = args.epochs
     IMSHAPE = (args.imheight,args.imwidth,3)
-    TRAIN_SUN = args.train
-
+    TRAIN_SUN = utils.utils.str2bool(args.train)
+    
     # Azimuth angle depends on dataset (fixed)
     AZIMUTH_gt = IMSHAPE[1]*0.5-1
     
@@ -477,7 +477,7 @@ if __name__=="__main__":
     
     parser = argparse.ArgumentParser(description="pretraining sun luminance estimator")
     parser.add_argument('--dir', type=str, default="/media/shin/2nd_m.2/LavalSkyDB")
-    parser.add_argument('--train', type=bool, default=True)
+    parser.add_argument('--train', type=str, default="true")
     parser.add_argument('--inference_img_dir', type=str, default=f"/home/shin/shinywings/research/challengingImages/{IMSHAPE[0]}_{IMSHAPE[1]}")
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--batchsize', type=int, default=32)

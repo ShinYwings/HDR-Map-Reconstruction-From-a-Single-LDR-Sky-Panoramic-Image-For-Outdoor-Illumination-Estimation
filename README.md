@@ -57,7 +57,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 2. Pretrain a sun luminance estimator.
 
     ```
-    python pretrain_sun.py --dir="your/dir/path" --train=True --inference_img_dir="your/dir/path"
+    python pretrain_sun.py --dir "your/dir/path" --train True --inference_img_dir "your/dir/path"
     
 
     --dir :
@@ -67,7 +67,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
         If "False", you can evaluate the sun luminance estimator that you trained.
     
     --inference_img_dir :
-        Absolute path of your input LDR directory to evaluate your sun luminance estimator. (Enable only if --train=False) 
+        Absolute path of your input LDR directory to evaluate your sun luminance estimator. (Enable only if --train False) 
     
     (Optional)
         --dorf :
@@ -95,7 +95,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 3. Train a main model
 
     ```
-    python train.py --dir="/your/dir/path" --sky="/sky/preweight/path" --sun="sun/preweight/path" --dorf="/txt/path" --vgg="/npy/path"
+    python train.py --dir "/your/dir/path" --sky "/sky/preweight/path" --sun "sun/preweight/path" --dorf="/txt/path" --vgg "/npy/path"
 
         --dir :
             Absolute path of your dataset directory to train.
@@ -137,7 +137,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 We have evaluated our model using two dataset (Laval-dataset, CAU dataset) respectively.
 
 ```
-python inference.py --indir="abs/path" --outdir="name"
+python inference.py --indir "abs/path" --outdir "name"
 
 --indir :
     Absolute path of your dataset directory to inference.
