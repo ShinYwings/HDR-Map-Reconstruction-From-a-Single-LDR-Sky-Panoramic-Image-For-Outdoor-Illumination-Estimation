@@ -1,7 +1,8 @@
-# HDR Map Reconstruction From a Single LDR Sky Panoramic Image For Outdoor Illumination Estimation
+# HDR Map Reconstruction From a Single LDR Sky Panoramic Image For Outdoor Illumination Estimation \[[Paper](https://ieeexplore.ieee.org/document/10045650)]
 
 ![result1](figure/rendered.png)
 A multi-faceted approach to reconstructing HDR maps from a single LDR sky panoramic image that considers the sun and sky regions separately and accounts for various weather conditions.
+
 (This paper has been published on IEEE Access)
 </br></br>
 
@@ -156,3 +157,15 @@ python inference.py --indir "abs/path" --outdir "name"
 ```
 
 The CAU dataset can be downloaded from [here](https://drive.google.com/drive/folders/1-EujEiQdLnBVUENRKUOU56_g0PgdWYVI?usp=sharing).
+
+# Citation
+
+```
+@article{shin2023hdr,
+  title={HDR Map Reconstruction From a Single LDR Sky Panoramic Image For Outdoor Illumination Estimation},
+  author={Shin, Gyeongik and Yu, Kyeongmin and Mark, Mpabulungi and Hong, Hyunki},
+  journal={IEEE Access},
+  year={2023},
+  publisher={IEEE}
+}
+```
