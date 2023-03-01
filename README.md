@@ -6,6 +6,10 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 (This paper has been published on IEEE Access)
 </br></br>
 
+# Architecture
+
+![arch](figure/arch.jpg)
+
 # Requirements
 
 - tensorflow >= 2.4
