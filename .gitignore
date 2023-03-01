@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 
 # Dataset
-*.jpg
 *.JPG
 *.txt
 
