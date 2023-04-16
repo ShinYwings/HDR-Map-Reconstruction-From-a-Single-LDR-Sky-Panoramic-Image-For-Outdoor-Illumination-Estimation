@@ -6,6 +6,11 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 (This paper has been published on IEEE Access)
 </br></br>
 
+# Results
+
+![arch](figure/res1.jpg){: width="70%" height="70%"}
+![arch](figure/res2.jpg){: width="70%" height="70%"}
+
 # Architecture
 
 ![arch](figure/arch.jpg)
