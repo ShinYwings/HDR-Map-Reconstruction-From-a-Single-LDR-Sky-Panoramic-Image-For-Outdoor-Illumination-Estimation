@@ -8,8 +8,8 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # Results
 
-![arch](figure/res1.jpg){: width="70%" height="70%"}
-![arch](figure/res2.jpg){: width="70%" height="70%"}
+![arch|500](figure/res1.jpg)
+![arch|500](figure/res2.jpg)
 
 # Architecture
 
