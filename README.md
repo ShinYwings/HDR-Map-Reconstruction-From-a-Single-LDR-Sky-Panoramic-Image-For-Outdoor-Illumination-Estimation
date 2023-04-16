@@ -12,7 +12,7 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
     <img src="figure/res1.jpg" width="50%" height="50%">
 
-2. Qualitative comparison between the proposed method and other HDR reconstruction methods and results of restoring pixel information lost due to overexposed areas from LDR images.
+2. Qualitative comparison between the proposed method and other HDR reconstruction methods and results of restoring pixel information lost due to overexposed areas from input LDR images.
 
     <img src="figure/res2.jpg" width="90%" height="90%">
 
