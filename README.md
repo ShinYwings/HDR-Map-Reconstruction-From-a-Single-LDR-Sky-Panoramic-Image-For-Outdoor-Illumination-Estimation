@@ -8,11 +8,11 @@ A multi-faceted approach to reconstructing HDR maps from a single LDR sky panora
 
 # Results
 
-1. Quantitative comparison of HDR maps reconstructed using the proposed method and other HDR reconstruction methods.
+1. HDR maps reconstructed using the proposed method under outdoor environmental conditions achieved better HDR image scores than maps reconstructed using other existing methods.
 
-    <img src="figure/res1.jpg" width="50%" height="50%">
+    <img src="figure/res1.jpg" width="70%" height="70%">
 
-2. Qualitative comparison between the proposed method and other HDR reconstruction methods and results of restoring pixel information lost due to overexposed areas from input LDR images.
+2. The proposed method directly estimates the lighting of the sun and its surrounding area, overcoming the performance limit of existing HDR reconstruction methods. This limit is caused by overexposure areas of input LDR images under various outdoor weather conditions.
 
     <img src="figure/res2.jpg" width="90%" height="90%">
 
