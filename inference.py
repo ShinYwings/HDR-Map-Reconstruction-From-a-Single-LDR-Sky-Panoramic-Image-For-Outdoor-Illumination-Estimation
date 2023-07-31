@@ -148,7 +148,7 @@ if __name__=="__main__":
         ldr_val = tf.expand_dims(ldr_val, axis=0)
 
         # ldr_val =  rgb
-        pred_hdr = inference(ldr_val)
+        pred_hdr = inference(ldr_val, args)
         
         imgname = os.path.split(ldr_img_path)[-1]
         imgname = str.split(imgname, sep=".")[0]
